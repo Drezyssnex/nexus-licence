@@ -7,11 +7,11 @@ app.use(cors());
 app.use(express.json());
 
 // ============================================
-// ⚠️ TOTO ZMĚŇ NA SVÉ HODNOTY!
+// ⚠️ ZMĚŇ TOTO NA SVÉ HODNOTY!
 // ============================================
 
-const SECRET = 'muj-tajny-klic-2026';
-const ADMIN_TOKEN = 'admin-token-2026';
+const SECRET = 'muj-tajny-klic-2026';           // Změň!
+const ADMIN_TOKEN = 'admin-token-2026';         // Změň!
 const WEBHOOK_URL = 'https://discord.com/api/webhooks/1522660774022221988/y8LhkX80TwFCYMpcHrkOb8_5a80hx_fH4uU3YgeC7TM9tyMLQ18hVBJWFYisxHt6N8MU'
 
 // ============================================
@@ -41,7 +41,7 @@ function generateDailyKey() {
 // API ENDPOINTY
 // ============================================
 
-// Hlavní endpoint - ověření klíče
+// 1. Ověření klíče
 app.post('/api/validate', (req, res) => {
     const { key } = req.body;
     
@@ -89,7 +89,7 @@ app.post('/api/validate', (req, res) => {
     });
 });
 
-// Získání dnešního klíče (pouze admin)
+// 2. Získání dnešního klíče (pouze admin)
 app.get('/api/today', (req, res) => {
     const token = req.headers.authorization;
     if (token !== `Bearer ${ADMIN_TOKEN}`) {
@@ -104,7 +104,43 @@ app.get('/api/today', (req, res) => {
     });
 });
 
-// Statistiky
+// 3. Odeslání klíče na Discord
+app.post('/api/send', async (req, res) => {
+    const token = req.headers.authorization;
+    if (token !== `Bearer ${ADMIN_TOKEN}`) {
+        return res.status(403).json({ error: 'Nepovoleno' });
+    }
+    
+    const key = generateDailyKey();
+    
+    const embed = {
+        title: '🔑 NEXUS QUESTER - Denní klíč',
+        description: `\`\`\`${key}\`\`\``,
+        color: 0x5865F2,
+        fields: [
+            { name: '⏰ Platnost', value: '24 hodin', inline: true },
+            { name: '📅 Datum', value: new Date().toISOString().split('T')[0], inline: true }
+        ]
+    };
+    
+    try {
+        const fetch = (await import('node-fetch')).default;
+        await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                embeds: [embed],
+                content: '@everyone 🌅 Nový denní klíč je připraven!'
+            })
+        });
+        
+        res.json({ success: true, key });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// 4. Statistiky
 app.get('/api/stats', (req, res) => {
     const token = req.headers.authorization;
     if (token !== `Bearer ${ADMIN_TOKEN}`) {
