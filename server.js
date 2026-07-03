@@ -12,6 +12,7 @@ app.use(express.json());
 
 const SECRET = 'muj-tajny-klic-2026';
 const ADMIN_TOKEN = 'admin-token-2026';
+const WEBHOOK_URL = 'https://discord.com/api/webhooks/1522660774022221988/y8LhkX80TwFCYMpcHrkOb8_5a80hx_fH4uU3YgeC7TM9tyMLQ18hVBJWFYisxHt6N8MU'
 
 // ============================================
 
